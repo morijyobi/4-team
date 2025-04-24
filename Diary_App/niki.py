@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from tkcalendar import Calendar
 from calendar_component import calendar_component
 
 
