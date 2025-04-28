@@ -9,10 +9,10 @@ def calendar_component(master):
     label1.place(x=20, y=3)
 
     label2 = tk.Label(frame, font=("Meiryo UI", 9), anchor=tk.W, width=10, bg="#EEEEE8")
-    label2.place(x=70, y=8)
+    label2.place(x=70, y=18)
 
     label3 = tk.Label(frame, font=("Meiryo UI", 10), anchor=tk.W, width=10, bg="#EEEEE8")
-    label3.place(x=70, y=25)
+    label3.place(x=100, y=18)
 
     labels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     for i in range(7):
