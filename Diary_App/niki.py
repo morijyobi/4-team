@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox  
+import csv
+import os
 from calendar_component import calendar_component
+FILENAME = "diary.csv"
 
 def save_entry():
     date = cal.get_date()
@@ -11,6 +15,43 @@ def save_entry():
 
     diary_display.insert("end", f"【{date}】\n{message}\n\n")
     message_text.delete("1.0", "end")
+    
+    if message:
+        # CSVに保存
+        with open(FILENAME, "a", newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow([date, weather, action, satisfaction, message])
+
+        # 入力欄リセット
+        message_text.delete("1.0", "end")
+        satisfaction_entry.delete(0, 'end')
+        
+        # その日の日記を表示
+        load_entries(date)
+    else:
+        tk.messagebox.showwarning("警告", "メッセージを入力してください！")
+
+def load_entries(selected_date=None):
+    # 日記表示をリセット
+    diary_display.delete(1.0, "end")
+    
+    if os.path.exists(FILENAME):
+        with open(FILENAME, "r", encoding='utf-8') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if len(row) == 5:
+                    date, weather, action, satisfaction, message = row
+                    
+                    if selected_date is None or date == selected_date:
+                        # 日付が一致する場合にのみ表示
+                        diary_display.insert("end", f"【{date}】 天気: {weather} 行動: {action} 充実度: {satisfaction}\n{message}\n\n")
+
+def on_date_click(event):
+    # カレンダーの日付がクリックされた時のイベントハンドラ
+    selected_date = cal.get_date()
+    load_entries(selected_date)
+    
+
 
 def exit_fullscreen(event=None):
     root.attributes("-fullscreen", False)
@@ -68,5 +109,8 @@ selected_date_label.place(x=700, y=20)
 # 日記表示欄（右側）
 diary_display = tk.Text(root, width=70, height=40, bd=1, relief="solid", font=font_main)
 diary_display.place(x=700, y=50)
+
+# 起動時に既存データ読み込み
+load_entries()
 
 root.mainloop()
