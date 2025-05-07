@@ -89,6 +89,7 @@ class CalendarComponent(tk.Frame):
         day = self.cal_data[idx]
         if day:
             self.selected_date = dt.date(self.year, self.month, int(day))
+            self.event_generate("<<CalendarSelected>>")
 
     def get_date(self):
         return self.selected_date

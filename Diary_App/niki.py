@@ -4,51 +4,88 @@ from tkinter import messagebox
 import csv
 import os
 from calendar_component import calendar_component
-FILENAME = "diary.csv"
+FOLDER_NAME = "diary_entries"
+
+if not os.path.exists(FOLDER_NAME):
+    os.makedirs(FOLDER_NAME)
 
 def save_entry():
-    date = cal.get_date()
+    date_obj = cal.get_date()
+    date_str = date_obj.strftime("%Y_%m_%d")
+
     weather = weather_cb.get()
     action = action_cb.get()
     satisfaction = satisfaction_entry.get()
     message = message_text.get("1.0", "end").strip()
 
-    diary_display.insert("end", f"【{date}】\n{message}\n\n")
-    message_text.delete("1.0", "end")
-    
-    if message:
-        # CSVに保存
-        with open(FILENAME, "a", newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow([date, weather, action, satisfaction, message])
+    if not message:
+        messagebox.showwarning("警告", "メッセージを入力してください！")
+        return
 
-        # 入力欄リセット
-        message_text.delete("1.0", "end")
-        satisfaction_entry.delete(0, 'end')
-        
-        # その日の日記を表示
-        load_entries(date)
-    else:
-        tk.messagebox.showwarning("警告", "メッセージを入力してください！")
+    # CSV保存
+    csv_path = os.path.join(FOLDER_NAME, f"{date_str}.csv")
+    with open(csv_path, "w", newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow([date_str, weather, satisfaction, action])
+
+    # テキスト保存
+    txt_path = os.path.join(FOLDER_NAME, f"{date_str}.txt")
+    with open(txt_path, "w", encoding='utf-8') as file:
+        file.write(message)
+
+    # 表示欄に追加
+    diary_display.insert("end", f"【{date_str}】 天気: {weather} 行動: {action} 充実度: {satisfaction}\n{message}\n\n")
+
+    # 入力欄クリア
+    message_text.delete("1.0", "end")
+    satisfaction_entry.delete(0, 'end')
+
+    load_entries(date_obj)  # ← 保存直後にその日だけ再表示（重複防止）
+
+    
 
 def load_entries(selected_date=None):
-    # 日記表示をリセット
     diary_display.delete(1.0, "end")
-    
-    if os.path.exists(FILENAME):
-        with open(FILENAME, "r", encoding='utf-8') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                if len(row) == 5:
-                    date, weather, action, satisfaction, message = row
-                    
-                    if selected_date is None or date == selected_date:
-                        # 日付が一致する場合にのみ表示
+
+    if selected_date:
+        date_str = selected_date.strftime("%Y_%m_%d")
+        csv_path = os.path.join(FOLDER_NAME, f"{date_str}.csv")
+        txt_path = os.path.join(FOLDER_NAME, f"{date_str}.txt")
+
+        if os.path.exists(csv_path):
+            with open(csv_path, "r", encoding='utf-8') as f:
+                reader = csv.reader(f)
+                for row in reader:
+                    if len(row) == 4:
+                        date, weather, satisfaction, action = row
+                        message = ""
+                        if os.path.exists(txt_path):
+                            with open(txt_path, "r", encoding="utf-8") as t:
+                                message = t.read()
                         diary_display.insert("end", f"【{date}】 天気: {weather} 行動: {action} 充実度: {satisfaction}\n{message}\n\n")
+    else:
+        # すべての日記を表示
+        for file in sorted(os.listdir(FOLDER_NAME)):
+            if file.endswith(".csv"):
+                date_str = file[:-4]
+                csv_path = os.path.join(FOLDER_NAME, f"{date_str}.csv")
+                txt_path = os.path.join(FOLDER_NAME, f"{date_str}.txt")
+
+                with open(csv_path, "r", encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        if len(row) == 4:
+                            date, weather, satisfaction, action = row
+                            message = ""
+                            if os.path.exists(txt_path):
+                                with open(txt_path, "r", encoding="utf-8") as t:
+                                    message = t.read()
+                            diary_display.insert("end", f"【{date}】 天気: {weather} 行動: {action} 充実度: {satisfaction}\n{message}\n\n")
+
 
 def on_date_click(event):
-    # カレンダーの日付がクリックされた時のイベントハンドラ
     selected_date = cal.get_date()
+    selected_date_label.config(text=f"選択中の日付: {selected_date}")
     load_entries(selected_date)
     
 
@@ -71,6 +108,7 @@ tk.Label(root, text="Monologue", font=("Helvetica", 20, "bold"), bg="#f8f8f8").p
 # カレンダー
 cal = calendar_component(root)
 cal.place(x=30, y=70)
+cal.bind("<<CalendarSelected>>", on_date_click)
 
 # 天気
 tk.Label(root, text="天気", font=label_font, bg="#f8f8f8").place(x=50, y=500)
@@ -79,7 +117,7 @@ weather_cb.place(x=120, y=500)
 
 # 行動
 tk.Label(root, text="行動", font=label_font, bg="#f8f8f8").place(x=50, y=540)
-action_cb = ttk.Combobox(root, values=["勉強", "仕事", "運動", "遊び", "休憩"], width=15)
+action_cb = ttk.Combobox(root, values=["出社", "テレワーク", "外回り", "出張", "休日"], width=15)
 action_cb.place(x=120, y=540)
 
 # 充実度
@@ -98,8 +136,12 @@ message_text.pack(padx=5, pady=5)
 save_btn = tk.Button(root, text="📕記録する", command=save_entry,
                      font=("Helvetica", 10, "bold"), bg="black", fg="white",
                      width=10, relief="flat", padx=10, pady=5)
-save_btn.place(x=400, y=620)
-
+save_btn.place(x=350, y=620)
+# 閉じるボタン
+exit_btn = tk.Button(root, text="✖閉じる", command=root.quit,
+                     font=("Helvetica", 10, "bold"), bg="gray", fg="white",
+                     width=10, relief="flat", padx=10, pady=5)
+exit_btn.place(x=470, y=620)
 
 # 日記の日付表示ラベル
 selected_date_label = tk.Label(root, text="日付を選んでください", font=("Helvetica", 12, "bold"), bg="#f8f8f8")
@@ -112,5 +154,6 @@ diary_display.place(x=700, y=50)
 
 # 起動時に既存データ読み込み
 load_entries()
+
 
 root.mainloop()
