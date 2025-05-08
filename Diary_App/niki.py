@@ -87,8 +87,9 @@ def load_entries(selected_date=None):
 
 def on_date_click(event):
     selected_date = cal.get_date()
-    selected_date_label.config(text=f"選択中の日付: {selected_date}")
+    selected_date_label.config(text=f"選択中の日付: {selected_date}") 
     load_entries(selected_date)
+
     
 
 
@@ -157,6 +158,24 @@ diary_display.place(x=700, y=50)
 
 
 def draw_omikuji():
+    from datetime import datetime
+
+    today = datetime.now().date()
+    log_file = "last_omikuji.txt"
+
+    # すでに今日引いたか確認
+    if os.path.exists(log_file):
+        with open(log_file, "r") as f:
+            last_date_str = f.read().strip()
+            if last_date_str:
+                try:
+                    last_date = datetime.strptime(last_date_str, "%Y-%m-%d").date()
+                    if last_date == today:
+                        messagebox.showinfo("おみくじ", "今日はすでにおみくじを引きました！")
+                        return
+                except:
+                    pass  # ファイルが壊れていた場合は無視して続行
+
     results = {
         "大吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/daikichi.png",
         "中吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/chukichi.png",
@@ -172,12 +191,17 @@ def draw_omikuji():
 
     # 画像読み込み
     img = Image.open(image_path)
-    img = img.resize((150, 150))  # 必要に応じてサイズ調整
+    img = img.resize((150, 150))
     img_tk = ImageTk.PhotoImage(img)
 
-    # ラベルに画像を表示
+    # 表示
     omikuji_image_label.config(image=img_tk)
-    omikuji_image_label.image = img_tk  # 参照を保持しないと画像が消える
+    omikuji_image_label.image = img_tk
+
+    # 今日の日付をファイルに記録
+    with open(log_file, "w") as f:
+        f.write(str(today))
+
 
 
 def on_enter(e):
@@ -217,6 +241,9 @@ omikuji_image_label.place(x=700, y=500)
 
 # 起動時に既存データ読み込み
 load_entries()
+
+selected_date_label.config(text=f"選択中の日付: {cal.get_date()}")
+
 
 
 root.mainloop()
