@@ -4,6 +4,8 @@ from tkinter import messagebox
 import csv
 import os
 from calendar_component import calendar_component
+from PIL import Image, ImageTk 
+import random
 FOLDER_NAME = "diary_entries"
 
 if not os.path.exists(FOLDER_NAME):
@@ -149,8 +151,69 @@ selected_date_label.place(x=700, y=20)
 
 
 # 日記表示欄（右側）
-diary_display = tk.Text(root, width=70, height=40, bd=1, relief="solid", font=font_main)
+diary_display = tk.Text(root, width=70, height=23, bd=1, relief="solid", font=font_main)
 diary_display.place(x=700, y=50)
+
+
+
+def draw_omikuji():
+    results = {
+        "大吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/daikichi.png",
+        "中吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/chukichi.png",
+        "小吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/shokichi.png",
+        "吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/kichi.png",
+        "末吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/suekichi.png",
+        "凶": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/kyo.png",
+        "大凶": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/daikyo.png"
+    }
+
+    result = random.choice(list(results.keys()))
+    image_path = results[result]
+
+    # 画像読み込み
+    img = Image.open(image_path)
+    img = img.resize((150, 150))  # 必要に応じてサイズ調整
+    img_tk = ImageTk.PhotoImage(img)
+
+    # ラベルに画像を表示
+    omikuji_image_label.config(image=img_tk)
+    omikuji_image_label.image = img_tk  # 参照を保持しないと画像が消える
+
+
+def on_enter(e):
+    omikuji_btn["background"] = "#e6d5b8"
+    omikuji_btn["relief"] = "sunken"
+
+def on_leave(e):
+    omikuji_btn["background"] = "#f5e1c8"
+    omikuji_btn["relief"] = "raised"
+
+# おみくじボタン
+omikuji_btn = tk.Button(
+    root,
+    text="おみくじを引く",
+    command=draw_omikuji,
+    font=("Meiryo", 14, "bold"),
+    bg="#f5e1c8",
+    fg="#3c2f2f",
+    activebackground="#e6d5b8",
+    relief="raised",
+    bd=2,
+    width=20,
+    height=2
+)
+
+omikuji_btn.bind("<Enter>", on_enter)
+omikuji_btn.bind("<Leave>", on_leave)
+omikuji_btn.place(x=900, y=550)
+
+# 結果画像表示用ラベル
+omikuji_image_label = tk.Label(root, bg="#f8f8f8")
+omikuji_image_label.place(x=700, y=500)  
+
+
+
+
 
 # 起動時に既存データ読み込み
 load_entries()
