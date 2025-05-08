@@ -7,6 +7,8 @@ from calendar_component import calendar_component
 from PIL import Image, ImageTk 
 import random
 FOLDER_NAME = "diary_entries"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+IMG_FOLDER = os.path.join(BASE_DIR, "img")
 
 if not os.path.exists(FOLDER_NAME):
     os.makedirs(FOLDER_NAME)
@@ -177,14 +179,14 @@ def draw_omikuji():
                     pass  # ファイルが壊れていた場合は無視して続行
 
     results = {
-        "大吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/daikichi.png",
-        "中吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/chukichi.png",
-        "小吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/shokichi.png",
-        "吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/kichi.png",
-        "末吉": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/suekichi.png",
-        "凶": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/kyo.png",
-        "大凶": "C:/Users/kyo//Desktop/Study/チーム開発演習/Sarudate_Bravers/Diary_App/img/daikyo.png"
-    }
+    "大吉": os.path.join(IMG_FOLDER, "daikichi.png"),
+    "中吉": os.path.join(IMG_FOLDER, "chukichi.png"),
+    "小吉": os.path.join(IMG_FOLDER, "shokichi.png"),
+    "吉": os.path.join(IMG_FOLDER, "kichi.png"),
+    "末吉": os.path.join(IMG_FOLDER, "suekichi.png"),
+    "凶": os.path.join(IMG_FOLDER, "kyo.png"),
+    "大凶": os.path.join(IMG_FOLDER, "daikyo.png")
+}
 
     result = random.choice(list(results.keys()))
     image_path = results[result]
